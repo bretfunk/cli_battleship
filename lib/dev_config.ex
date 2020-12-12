@@ -1,5 +1,5 @@
 defmodule DevConfig do
-  def sound(), do: false
+  def sound(), do: true
   def music(), do: true
-  # def animations(), do: true
+  def animations(), do: true
 end

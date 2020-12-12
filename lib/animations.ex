@@ -4,87 +4,99 @@ defmodule Animations do
   end
 
   def intro_animation() do
-    :timer.sleep(250)
-    IO.puts(" ____       _______ _______ _      ______  _____ _    _ _____ _____  ")
-    :timer.sleep(250)
-    IO.puts("|  _ \\   /\\|__   __|__   __| |    |  ____|/ ____| |  | |_   _|  __ \\ ")
-    :timer.sleep(250)
-    IO.puts("| |_) | /  \\  | |     | |  | |    | |__  | (___ | |__| | | | | |__) |")
-    :timer.sleep(250)
-    IO.puts("|  _ < / /\\ \\ | |     | |  | |    |  __|  \\___ \\|  __  | | | |  ___/ ")
-    :timer.sleep(250)
-    IO.puts("| |_) / ____ \\| |     | |  | |____| |____ ____) | |  | |_| |_| |     ")
-    :timer.sleep(250)
-    IO.puts("|____/_/    \\_\\_|     |_|  |______|______|_____/|_|  |_|_____|_|")
-    :timer.sleep(250)
+    if DevConfig.animations() do
+      :timer.sleep(250)
+      IO.puts(" ____       _______ _______ _      ______  _____ _    _ _____ _____  ")
+      :timer.sleep(250)
+      IO.puts("|  _ \\   /\\|__   __|__   __| |    |  ____|/ ____| |  | |_   _|  __ \\ ")
+      :timer.sleep(250)
+      IO.puts("| |_) | /  \\  | |     | |  | |    | |__  | (___ | |__| | | | | |__) |")
+      :timer.sleep(250)
+      IO.puts("|  _ < / /\\ \\ | |     | |  | |    |  __|  \\___ \\|  __  | | | |  ___/ ")
+      :timer.sleep(250)
+      IO.puts("| |_) / ____ \\| |     | |  | |____| |____ ____) | |  | |_| |_| |     ")
+      :timer.sleep(250)
+      IO.puts("|____/_/    \\_\\_|     |_|  |______|______|_____/|_|  |_|_____|_|")
+      :timer.sleep(250)
+    else
+      nil
+    end
   end
 
   def pause_animation(num) do
-    if num === 0 do
-      nil
+    if DevConfig.animations() do
+      if num === 0 do
+        nil
+      else
+        IO.puts(" ")
+        :timer.sleep(250)
+        pause_animation(num - 1)
+      end
     else
-      IO.puts(" ")
-      :timer.sleep(250)
-      pause_animation(num - 1)
+      nil
     end
   end
 
   def start_animation(num) do
-    Animations.clear_screen()
+    if DevConfig.animations() do
+      Animations.clear_screen()
 
-    case num do
-      3 ->
-        IO.puts("""
-                            /|
-                          ///|
-                        /////|
-                      ///////|
-                    /////////|
-              \==========|===/
-        ~~~~~~~~~~~~~~~~~~~~~
-        """)
+      case num do
+        3 ->
+          IO.puts("""
+                              /|
+                            ///|
+                          /////|
+                        ///////|
+                      /////////|
+                \==========|===/
+          ~~~~~~~~~~~~~~~~~~~~~
+          """)
 
-        :timer.sleep(1000)
-        start_animation(num - 1)
+          :timer.sleep(1000)
+          start_animation(num - 1)
 
-      2 ->
-        IO.puts("""
-                                                /|
-                                              ///|
-                                            /////|
-                                          ///////|
-                                        /////////|
-                                  \==========|===/
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        """)
+        2 ->
+          IO.puts("""
+                                                  /|
+                                                ///|
+                                              /////|
+                                            ///////|
+                                          /////////|
+                                    \==========|===/
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          """)
 
-        :timer.sleep(1000)
-        start_animation(num - 1)
+          :timer.sleep(1000)
+          start_animation(num - 1)
 
-      1 ->
-        IO.puts("""
-                                                                    /|
-                                                                  ///|
-                                                                /////|
-                                                              ///////|
-                                                            /////////|
-                                                      \==========|===/
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        """)
+        1 ->
+          IO.puts("""
+                                                                      /|
+                                                                    ///|
+                                                                  /////|
+                                                                ///////|
+                                                              /////////|
+                                                        \==========|===/
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          """)
 
-        :timer.sleep(1000)
-        start_animation(num - 1)
+          :timer.sleep(1000)
+          start_animation(num - 1)
 
-      0 ->
-        enemy_cutscene("""
-        SURRENDER PIRATES,
-        WE HAVE YOU SURROUNDED
-        """)
+        0 ->
+          enemy_cutscene("""
+          SURRENDER PIRATES,
+          WE HAVE YOU SURROUNDED
+          """)
 
-        Music.lose_music()
+          Music.lose_music()
 
-      _ ->
-        nil
+        _ ->
+          nil
+      end
+    else
+      nil
     end
   end
 
@@ -105,7 +117,7 @@ defmodule Animations do
   end
 
   def win_animation() do
-    cutscene("Captain, we have destroyed the enemy ships!")
+    player_cutscene("Captain, we have destroyed the enemy ships!")
     Animations.clear_screen()
 
     IO.puts("""
@@ -236,6 +248,7 @@ defmodule Animations do
     |__/    \\______/  \\______/       |__/     \\__/|______/|__/  \\__/
     """)
 
+    Music.win_music()
     Battleship.prompt("Press Enter to Continue")
   end
 
@@ -371,7 +384,7 @@ defmodule Animations do
     IO.gets("Press Enter to Continue")
   end
 
-  def cutscene(text, pause \\ false) do
+  def player_cutscene(text, pause \\ false) do
     Animations.clear_screen()
     graphic(text)
     sound(text)
@@ -450,7 +463,7 @@ defmodule Animations do
     or do you want to position us elsewhere?
     """
 
-    cutscene(rules)
+    player_cutscene(rules)
   end
 
   def cutscene_one() do
@@ -477,17 +490,8 @@ defmodule Animations do
 
     Animations.enemy_cutscene(enemy_speech)
     Music.lose_music()
-
-    # Animations.cutscene(
-    #   """
-    #   Captain, it has been an honor to serve with you.
-    #   """,
-    #   true
-    # )
-
     Animations.clear_screen()
-    play_again? = Battleship.prompt("Would you like to play again? Y or N")
-
+    play_again? = Battleship.prompt("Would you like to play again? \"Y\" or \"N\"")
     Battleship.play_again(play_again?)
   end
 end

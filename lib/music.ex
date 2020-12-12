@@ -12,7 +12,7 @@ defmodule Music do
   end
 
   def win_music() do
-    play("win")
+    play("won")
   end
 
   def lose_music() do

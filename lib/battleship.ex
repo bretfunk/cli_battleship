@@ -1,16 +1,17 @@
 defmodule Battleship do
+  # our turn
+  # their turn
   # make board display
-  # make win screens
+  # validate inputs
   # maybe agent for storing boards so doesn't render each time?
   # different ship sizes
-  # validate inputs
   # different boards
   #
   @board_locations for n <- [1, 2, 3],
                        l <- ["A", "B", "C"],
                        do: l <> Integer.to_string(n)
 
-  def(run()) do
+  def run() do
     Animations.clear_screen()
     :timer.sleep(500)
     Animations.intro_animation()
@@ -33,40 +34,59 @@ defmodule Battleship do
     IO.gets("#{text}\n") |> String.upcase() |> String.trim()
   end
 
+  def select_ships() do
+    ship1 = prompt("Select first ship location")
+    ship2 = prompt("Select second ship location")
+    ship3 = prompt("Select third ship location")
+    ships = [ship1, ship2, ship3]
+
+    if ships |> Enum.uniq() |> Enum.count() !== 3 do
+      IO.puts("Invalid Ship Selection")
+      select_ships
+    else
+      ships
+    end
+  end
+
   def setup() do
     Animations.clear_screen()
-    rules = prompt("Do you need to see the rules? Press Y or N")
 
-    case rules do
-      "Y" -> Animations.show_rules()
-      "N" -> nil
-      _ -> setup()
+    if DevConfig.animations() do
+      rules = prompt("Do you need to see the rules? Press \"Y\" or \"N\"")
+
+      case rules do
+        "Y" -> Animations.show_rules()
+        "N" -> nil
+        _ -> setup()
+      end
+    else
+      nil
     end
 
     Animations.clear_screen()
 
-    custom_ships =
-      prompt("Do you want to move your ships or stay in the current location? Press M or S")
+    custom_ships = prompt("Do you want to stay in your current location? Press \"Y\" or \"N\"")
 
     player1_ships =
       case custom_ships do
-        # just hardcoding these for now
-        "S" -> ["A1"]
-        "M" -> ["A1"]
+        "Y" -> player1_ships = @board_locations |> Enum.take_random(3)
+        "N" -> select_ships()
         _ -> nil
       end
 
-    ai_ships = ["A1"]
+    ai_ships = @board_locations |> Enum.take_random(3)
+    IO.inspect(player1_ships)
+    IO.inspect(ai_ships)
 
     start_game(player1_ships, ai_ships)
   end
 
   def start_game(player1_ships, ai_ships) do
     if(rem(:rand.uniform(10), 2) === 0) do
-      Animations.cutscene("Captain, we should make the first move.", true)
-      player1_turn(2, player1_ships, ai_ships, [], [])
+      Animations.player_cutscene("Captain, we should make the first move.", true)
+      player1_turn(player1_ships, ai_ships, [], [])
     else
-      Animations.cutscene(
+      Animations.player_cutscene(
         """
         Captain, the bureaucrats are attacking! 
         BATTLE STATIONS!
@@ -74,26 +94,30 @@ defmodule Battleship do
         true
       )
 
-      ai_turn(2, player1_ships, ai_ships, [], [])
+      ai_turn(player1_ships, ai_ships, [], [])
     end
   end
 
-  def player1_turn(_, _, [], _, _) do
+  def player1_turn(_, [], _, _) do
     Animations.win_animation()
-    play_again? = prompt("Want to play again? Y or N")
+    play_again? = prompt("Want to play again? \"Y\" or \"N\"")
     play_again(play_again?)
   end
 
-  def player1_turn(num, player1_ships, ai_ships, player1_attacks, ai_attacks)
-      when num > 0 do
-    Animations.cutscene("Captain, where would you like to attack?")
-    attack = prompt("Enter coordinate")
+  def player1_turn(player1_ships, ai_ships, player1_attacks, ai_attacks) do
+    Animations.player_cutscene("Captain, where should we attack?")
+    attack = prompt("Enter coordinate to attack")
+
+    # if(!valid_coordinate(attack),
+    #   do: player1_turn(player1_ships, ai_ships, player1_attacks, ai_attacks)
+    # )
+
+    Animations.player_cutscene("Captain selects #{attack}")
 
     if Enum.find(ai_ships, fn s -> s === attack end) do
       Animations.hit_animation()
 
       player1_turn(
-        num - 1,
         player1_ships,
         ai_ships -- [attack],
         player1_attacks ++ [attack],
@@ -101,54 +125,48 @@ defmodule Battleship do
       )
     else
       Animations.miss_animation()
-      player1_turn(num - 1, player1_ships, ai_ships, player1_attacks ++ [attack], ai_attacks)
-      # ai_turn(num - 1, player1_ships, ai_ships, player1_attacks, ai_attacks)
+      ai_turn(player1_ships, ai_ships, player1_attacks ++ [attack], ai_attacks)
     end
   end
 
-  def player1_turn(_, _, _, _, _) do
+  def player1_turn(_, _, _, _) do
     IO.puts("Player 1 ERROR")
   end
 
-  def ai_turn(_, [], _, _, _) do
+  def ai_turn([], _, _, _) do
     Animations.lose_ending()
-    play_again? = prompt("Would you like to play again? Y or N")
+    play_again? = prompt("Would you like to play again? \"Y\" or \"N\"")
 
     play_again(play_again?)
   end
 
-  def ai_turn(num, player1_ships, ai_ships, player1_attacks, ai_attacks)
-      when num > 0 do
-    IO.puts("Computer Turn")
-    attack = rand_position([])
-    IO.puts("Computer selects #{attack}")
-    ai_attacks ++ [attack]
+  def ai_turn(player1_ships, ai_ships, player1_attacks, ai_attacks) do
+    attack = (@board_locations -- ai_attacks) |> Enum.random()
+    Animations.enemy_cutscene("Attack #{attack}!", true)
 
-    if(Enum.find(player1_ships, fn s -> s === attack end),
-      do: IO.puts("HIT"),
-      else: IO.puts("MISS")
-    )
-
-    player1_turn(num - 1, player1_ships, ai_ships, player1_attacks, ai_attacks)
+    if Enum.find(player1_ships, fn s -> s === attack end) do
+      Animations.hit_animation()
+      ai_turn(player1_ships -- [attack], ai_ships, player1_attacks, ai_attacks ++ [attack])
+    else
+      Animations.miss_animation()
+      player1_turn(player1_ships, ai_ships, player1_attacks, ai_attacks ++ [attack])
+    end
   end
 
-  def ai_turn(_, _, _, _, _) do
+  def ai_turn(_, _, _, _) do
     IO.puts("AI ERROR")
   end
 
-  def rand_position(_previous) do
-    "A1"
-  end
+  #   def valid_coordinate(input) do
+  #     [letter, number] = input |> String.codepoints()
+  #     try
+  #     valid_letter(letter) && valid_number(String.to_integer(number))
+  #   catch
+  #     false
+  #   end
 
-  # def check_for_winner(player1_ships, ai_ships, player1_attacks, ai_attacks)
-  #     when length(player1_ships) === 0 do
-  #   ai_turn(true, player1_ships, ai_ships, player1_attacks, ai_attacks)
-  # end
-
-  # def check_for_winner(player1_ships, ai_ships, player1_attacks, ai_attacks)
-  #     when length(ai_ships) === 0 do
-  #   player1_turn(true, player1_ships, ai_ships, player1_attacks, ai_attacks)
-  # end
+  #   def valid_letter(l) when is_binary(l), do: true
+  #   def valid_number(n) when is_integer(n), do: true
 end
 
 Battleship.run()
