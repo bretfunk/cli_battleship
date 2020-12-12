@@ -42,6 +42,11 @@ defmodule Animations do
       Animations.clear_screen()
 
       case num do
+        4 ->
+          IO.puts("Somewhere off of the coast of Jacksonville, Florida...")
+          :timer.sleep(3000)
+          start_animation(num - 1)
+
         3 ->
           IO.puts("""
                               /|
@@ -386,13 +391,61 @@ defmodule Animations do
 
   def player_cutscene(text, pause \\ false) do
     Animations.clear_screen()
-    graphic(text)
+    player_graphic(text)
     sound(text)
     if(pause, do: IO.gets("Press Enter to Continue"))
   end
 
+  def player_board_cutscene(text, pause?, player1_ships, ai_ships, player1_attacks, ai_attacks) do
+    Animations.clear_screen()
+    player_graphic_with_board(text, player1_ships, ai_ships, player1_attacks, ai_attacks)
+    sound(text)
+    if(pause?, do: IO.gets("Press Enter to Continue"))
+  end
+
   def enemy_cutscene(text, pause \\ false) do
     Animations.clear_screen()
+    enemy_graphic(text)
+
+    if(pause, do: IO.gets("Press Enter to Continue"))
+  end
+
+  def enemy_board_cutscene(text, pause?, player1_ships, ai_ships, player1_attacks, ai_attacks) do
+    Animations.clear_screen()
+    enemy_graphic_with_board(text, player1_ships, ai_ships, player1_attacks, ai_attacks)
+
+    if(pause?, do: IO.gets("Press Enter to Continue"))
+  end
+
+  def enemy_graphic(text) do
+    IO.puts("""
+    #{text}
+    |________________________|
+      \\
+                 ________
+                /        \\
+             __/       (o)\\__
+            /     ______\\\   \\
+            |____/__  __\\____|
+               [  --~~--  ]
+                |(  L   )|
+         ___----\\  __  /----___
+        /   |  < \\____/ >   |   \\
+        /    |   < \\--/ >    |    \\
+        ||||||    \\ \\/ /     ||||||
+        |          \\  /   o       |
+        |     |     \\/   === |    |
+        |     |      |o  ||| |    |
+        |     \\______|   +#* |    |
+        |            |o      |    |
+        \\           |      /     /
+        |\\__________|o    /     /
+        |           |    /     /
+    """)
+  end
+
+  def enemy_graphic_with_board(text, player1_ships, ai_ships, player1_attacks, ai_attacks) do
+    stats_navbar(player1_ships, ai_ships, player1_attacks, ai_attacks, "ENEMY")
 
     IO.puts("""
     #{text}
@@ -418,11 +471,9 @@ defmodule Animations do
         |\\__________|o    /     /
         |           |    /     /
     """)
-
-    if(pause, do: IO.gets("Press Enter to Continue"))
   end
 
-  def graphic(text) do
+  def player_graphic(text) do
     IO.puts("""
     #{text}
     |____________________|
@@ -450,31 +501,120 @@ defmodule Animations do
     """)
   end
 
+  def player_graphic_with_board(text, player1_ships, ai_ships, player1_attacks, ai_attacks) do
+    stats_navbar(player1_ships, ai_ships, player1_attacks, ai_attacks, "PLAYER")
+
+    IO.puts("""
+    #{text}
+    |____________________|
+      \\
+        _.-----._ 
+       _'    '    '_
+      '_____________'
+          | +_+ |
+      ==--'_D__,'---==.
+     /    > \_/ <     |
+    /  >__\o_| o/     |
+    |      | |_/    , |
+    \,_____/_)  o   | |
+       |   o '  o   | |
+       |   o |  o   |_/|
+       '   o |  o   '  |
+       |   o |  o   |_/
+       |   o |  o   |))
+       |     |      |
+       |     \      |
+       |___o/ \_____|
+         |   |   |
+       __)  >|<  (__
+      (____,_|_,____)
+    """)
+  end
+
+  def stats_navbar(player1_ships, ai_ships, player1_attacks, ai_attacks, turn) do
+    IO.puts("""
+      _______________________________________________________________________________________
+         Player Ships Remaining: #{player1_ships |> Enum.count()}
+         Enemy Ships Remaining:  #{ai_ships |> Enum.count()}
+      _______________________________________________________________________________________
+    """)
+
+    if(turn === "PLAYER") do
+      IO.puts("""
+                  PLAYER GRID
+         ___________________________
+            1          2          3
+         ___________________________
+
+      A |   #{if(Enum.find(player1_attacks, fn x -> "A1" === x end), do: "X", else: ".")}          #{
+        if(Enum.find(player1_attacks, fn x -> "A2" === x end), do: "X", else: ".")
+      }          #{if(Enum.find(player1_attacks, fn x -> "A3" === x end), do: "X", else: ".")}
+        |
+      B |   #{if(Enum.find(player1_attacks, fn x -> "B1" === x end), do: "X", else: ".")}          #{
+        if(Enum.find(player1_attacks, fn x -> "B2" === x end), do: "X", else: ".")
+      }          #{if(Enum.find(player1_attacks, fn x -> "B3" === x end), do: "X", else: ".")}
+        |
+      C |   #{if(Enum.find(player1_attacks, fn x -> "C1" === x end), do: "X", else: ".")}          #{
+        if(Enum.find(player1_attacks, fn x -> "C2" === x end), do: "X", else: ".")
+      }          #{if(Enum.find(player1_attacks, fn x -> "C3" === x end), do: "X", else: ".")}
+
+
+        _______________________________________________________________________________________
+
+
+      """)
+    else
+      IO.puts("""
+                  ENEMY GRID
+         ___________________________
+            1          2          3
+         ___________________________
+
+      A |   #{if(Enum.find(ai_attacks, fn x -> "A1" === x end), do: "X", else: ".")}          #{
+        if(Enum.find(ai_attacks, fn x -> "A2" === x end), do: "X", else: ".")
+      }          #{if(Enum.find(ai_attacks, fn x -> "A3" === x end), do: "X", else: ".")}
+        |
+      B |   #{if(Enum.find(ai_attacks, fn x -> "B1" === x end), do: "X", else: ".")}          #{
+        if(Enum.find(ai_attacks, fn x -> "B2" === x end), do: "X", else: ".")
+      }          #{if(Enum.find(ai_attacks, fn x -> "B3" === x end), do: "X", else: ".")}
+        |
+      C |   #{if(Enum.find(ai_attacks, fn x -> "C1" === x end), do: "X", else: ".")}          #{
+        if(Enum.find(ai_attacks, fn x -> "C2" === x end), do: "X", else: ".")
+      }          #{if(Enum.find(ai_attacks, fn x -> "C3" === x end), do: "X", else: ".")}
+
+
+        _______________________________________________________________________________________
+
+
+      """)
+    end
+  end
+
   def sound(text) do
     if(DevConfig.sound(), do: System.cmd("say", [text]))
   end
 
   def show_rules do
     rules = """
-    Here is the situation.
-    We both have three ships.
-    The first to sink all opponent ships wins.
-    Should we stay in our current random location
-    or do you want to position us elsewhere?
+    Captain, it looks like we are evenly
+    matched with three ships apiece and a direct hit
+    will destroy any ship. Should we stay in our
+    current random location or do you want
+    to manually position our fleet?
     """
 
     player_cutscene(rules)
   end
 
   def cutscene_one() do
-    cutscene("""
-    Captain, an IRS ship
+    player_cutscene("""
+    Captain, the IRS
     is coming to tax us!
-    What should we do?
+    Should we prepare for battle?
     """)
 
     surrender? =
-      IO.gets("Press \"S\" to Surrender.  Press \"F\" to Fight\n")
+      IO.gets("Press \"Y\" to Fight.  Press \"N\" to Surrender\n")
       |> String.upcase()
       |> String.trim()
 
