@@ -15,7 +15,7 @@ defmodule Battleship do
     Animations.pause_animation(3)
     IO.gets("Press Enter to Continue")
     Music.enter()
-    Animations.start_animation(4)
+    Animations.start_animation()
     Animations.cutscene_one()
   end
 
@@ -127,6 +127,7 @@ defmodule Battleship do
     )
 
     if Enum.find(ai_ships, fn s -> s === attack end) do
+      Animations.player_attack_animation()
       Animations.hit_animation()
 
       player1_turn(
@@ -136,6 +137,7 @@ defmodule Battleship do
         ai_attacks
       )
     else
+      Animations.player_attack_animation()
       Animations.miss_animation()
       ai_turn(player1_ships, ai_ships, player1_attacks ++ [attack], ai_attacks)
     end
@@ -161,9 +163,11 @@ defmodule Battleship do
     )
 
     if Enum.find(player1_ships, fn s -> s === attack end) do
+      Animations.enemy_attack_animation()
       Animations.hit_animation()
       ai_turn(player1_ships -- [attack], ai_ships, player1_attacks, ai_attacks ++ [attack])
     else
+      Animations.enemy_attack_animation()
       Animations.miss_animation()
       player1_turn(player1_ships, ai_ships, player1_attacks, ai_attacks ++ [attack])
     end
