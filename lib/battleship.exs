@@ -3,17 +3,24 @@ defmodule Battleship do
   # different ship sizes
   # different boards
   #
+  Code.require_file("lib/animations.exs")
+  Code.require_file("lib/music.exs")
+
   @board_locations for n <- [1, 2, 3],
                        l <- ["A", "B", "C"],
                        do: l <> Integer.to_string(n)
 
   def run() do
     Animations.clear_screen()
-    :timer.sleep(500)
     Animations.intro_animation()
     Music.intro()
-    Animations.pause_animation(3)
-    IO.gets("Press Enter to Continue")
+
+    IO.gets("""
+
+
+    Press Enter to Continue
+    """)
+
     Music.enter()
     Animations.start_animation()
     Animations.cutscene_one()

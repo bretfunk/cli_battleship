@@ -1,4 +1,7 @@
 defmodule Animations do
+  Code.require_file("lib/dev_config.exs")
+  Code.require_file("lib/music.exs")
+
   def clear_screen do
     IO.puts("\e[H\e[2J")
   end
@@ -18,20 +21,6 @@ defmodule Animations do
       :timer.sleep(250)
       IO.puts("|____/_/    \\_\\_|     |_|  |______|______|_____/|_|  |_|_____|_|")
       :timer.sleep(250)
-    else
-      nil
-    end
-  end
-
-  def pause_animation(num) do
-    if DevConfig.animations() do
-      if num === 0 do
-        nil
-      else
-        IO.puts(" ")
-        :timer.sleep(250)
-        pause_animation(num - 1)
-      end
     else
       nil
     end
